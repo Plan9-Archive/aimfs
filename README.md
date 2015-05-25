@@ -4,11 +4,11 @@ This README would normally document whatever steps are necessary to get aimfs up
 
 ### What is this repository for? ###
 
-* Quick summary
-   this is a native plan9 aim client
+* This is a native plan9 aim client
 
 ### How do I get set up? ###
 
-* Summary of set up
-   ./aimfs screenname password &
-   mount /srv/aimscreenname /n/aim
+* hg clone https://bitbucket.org/echoline/aimfs
+* cd aimfs; mk
+* ./aimfs screenname password &
+* mount /srv/aimscreenname /n/aim
