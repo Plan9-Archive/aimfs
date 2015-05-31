@@ -57,10 +57,11 @@ void freeflap(flap *f){
 int recvflap(flapconn *fc, flap *f){
 	int i, r;
 	char buf[10];
+	f->offset = 0;
 
 	r = read(fc->fd, buf, 1);
 	if (r != 1)
-		exits("read");
+		exits("recvflap: read");
 	if (buf[0] != 0x2A)
 		exits("recvflap: magic mismatch");
 
@@ -85,12 +86,8 @@ int recvflap(flapconn *fc, flap *f){
 	
 	for (i = 0; i < f->length; i += r) {
 		r = read(fc->fd, &f->data[i], f->length - i);
-		if (r < 1) {
-			if (r < 0)
-				exits("short read");
-			else
-				continue;
-		}
+		if (r < 1)
+			exits("recvflap: short read");
 	}
 
 	return i;
