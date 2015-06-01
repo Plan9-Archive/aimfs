@@ -10,5 +10,9 @@ This README would normally document whatever steps are necessary to get aimfs up
 
 * hg clone https://bitbucket.org/echoline/aimfs
 * cd aimfs; mk
-* ./aimfs screenname password &
-* mount /srv/aimscreenname /n/aim
+* ./aimfs screenname password
+* help me code the rest
+
+### WTF NO COMMENTS‽‽‽ ###
+
+protocol documentation at [http://iserverd.khstu.ru/oscar/](http://iserverd.khstu.ru/oscar/)
