@@ -7,6 +7,9 @@
 flapconn* newflapconn(char *addr){
 	flapconn *ret = calloc(1, sizeof(flapconn));
 	ret->fd = dial(addr, nil, nil, nil);
+	if (ret->fd < 0) {
+		exits("dial");
+	}
 	srand(time(nil));
 	ret->seq = rand() % 0x8000;
 
@@ -16,9 +19,13 @@ flapconn* newflapconn(char *addr){
 int sendflap(flapconn *fc, flap *f){
 	uchar byte[1] = { 0x2a };
 
-	write(fc->fd, byte, 1);
-	write(fc->fd, &f->channel, 1);
-	
+	if (write(fc->fd, byte, 1) < 1){
+		exits("sendflap: write 0x2A");
+	}
+	if (write(fc->fd, &f->channel, 1) < 1){
+		exits("sendflap: write f->channel");
+	}
+
 	byte[0] = fc->seq >> 8;
 	write(fc->fd, byte, 1);
 	byte[0] = fc->seq & 0xFF;
