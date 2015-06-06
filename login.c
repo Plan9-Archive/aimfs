@@ -151,7 +151,7 @@ void aimlogin(char *sn, char *passwd){
 	if (r != 10)
 		exits("short read: 0x0017 0x0003");
 
-//	write(1, rf.data, 10);
+//	write(1, rf.data, rf.length);
 //	print("%x %x %x %x\n", rs.family, rs.subtype, rs.flags, rs.reqid);
 
 	if (rs.family != 0x0017 || rs.subtype != 0x0003)
@@ -196,12 +196,14 @@ void aimlogin(char *sn, char *passwd){
 	f->length = 4;
 	f->data = calloc(f->length, 1);
 	f->data[3] = 1;
+	f->offset = f->length;
 
 	t = newtlv(0x0006, cookie_length, (uchar*)cookie);
 	sendtlv(f, t);
 	freetlv(t);
 
 	sendflap(fc, f);
+//	write (1, f->data, f->length);
 	freeflap(f);
 
 	recvflap(fc, &rf);
@@ -347,7 +349,31 @@ void aimlogin(char *sn, char *passwd){
 	if (rs.family != 0x0004 || rs.subtype != 0x0005)
 		exits("snac mismatch: 0x0004 0x0005");
 
-	write (1, rf.data, rf.length);
+	rf.offset = 0;
+	rs.subtype = 0x0002;
+	rs.reqid++;
+	nextreq = s->reqid + 1;
+	sendsnac(&rf, &rs);
+
+//	write (1, rf.data, rf.length);
+
+	sendflap(fc, &rf);
 	free (rf.data);
+
+	f = newflap(2);
+	s = newsnac(0x0009, 0x0002, 0x0000, nextreq);
+//	nextreq = s->reqid + 1;
+	sendsnac(f, s);
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+	write (1, rf.data, rf.length);
+	if (rs.family != 0x0009 || rs.subtype != 0x0003)
+		exits("snac mismatch: 0x0009 0x0003");
 }
 
