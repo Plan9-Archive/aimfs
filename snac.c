@@ -5,17 +5,25 @@
 #include "fns.h"
 
 int sendsnac(flap *f, snac *s){
-	f->data = realloc(f->data, f->length + 10);
-	f->data[f->length++] = s->family >> 8;
-	f->data[f->length++] = s->family & 0xFF;
-	f->data[f->length++] = s->subtype >> 8;
-	f->data[f->length++] = s->subtype & 0xFF;
-	f->data[f->length++] = s->flags >> 8;
-	f->data[f->length++] = s->flags & 0xFF;
-	f->data[f->length++] = s->reqid >> 24;
-	f->data[f->length++] = (s->reqid >> 16) & 0xFF;
-	f->data[f->length++] = (s->reqid >> 8) & 0xFF;
-	f->data[f->length++] = s->reqid & 0xFF;
+	int diff = f->length - f->offset;
+
+	if (diff < 0)
+		exits("invalid offset");
+
+	if (diff < 10){
+		f->length += 10 - diff;
+		f->data = realloc(f->data, f->length);
+	}
+	f->data[f->offset++] = s->family >> 8;
+	f->data[f->offset++] = s->family & 0xFF;
+	f->data[f->offset++] = s->subtype >> 8;
+	f->data[f->offset++] = s->subtype & 0xFF;
+	f->data[f->offset++] = s->flags >> 8;
+	f->data[f->offset++] = s->flags & 0xFF;
+	f->data[f->offset++] = s->reqid >> 24;
+	f->data[f->offset++] = (s->reqid >> 16) & 0xFF;
+	f->data[f->offset++] = (s->reqid >> 8) & 0xFF;
+	f->data[f->offset++] = s->reqid & 0xFF;
 
 	return 0;
 }

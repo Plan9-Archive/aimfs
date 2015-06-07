@@ -3,6 +3,8 @@ int sendflap(flapconn *fc, flap *f);
 flap* newflap(uchar channel);
 void freeflap(flap *f);
 int recvflap(flapconn *fc, flap *f);
+ushort get2(flap *f);
+void put2(flap *f, ushort u);
 
 int sendsnac(flap *f, snac *s);
 snac *newsnac(ushort family, ushort subtype, ushort flags, uint reqid);

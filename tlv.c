@@ -5,14 +5,23 @@
 #include "fns.h"
 
 int sendtlv(flap *f, tlv *t) {
-	f->data = realloc (f->data, f->length + 4 + t->length);
-	f->data[f->length++] = t->type >> 8;
-	f->data[f->length++] = t->type & 0xFF;
-	f->data[f->length++] = t->length >> 8;
-	f->data[f->length++] = t->length & 0xFF;
+	int diff = f->length - f->offset;
+
+	if (diff < 0)
+		exits ("sendtlv: invalid offset");
+
+	if (diff < (4 + t->length)){
+		f->length += (4 + t->length) - diff;
+		f->data = realloc(f->data, f->length);
+	}
+
+	f->data[f->offset++] = t->type >> 8;
+	f->data[f->offset++] = t->type & 0xFF;
+	f->data[f->offset++] = t->length >> 8;
+	f->data[f->offset++] = t->length & 0xFF;
 	if (t->length)
-		memcpy(&f->data[f->length], t->value, t->length);
-	f->length += t->length;
+		memcpy(&f->data[f->offset], t->value, t->length);
+	f->offset += t->length;
 
 	return 0;
 }
@@ -43,7 +52,7 @@ tlv *recvtlv(flap *f){
 	memcpy(ret->value, &f->data[f->offset], ret->length);
 	f->offset += ret->length;
 
-	if (f->offset >= f->length){
+	if (f->offset > f->length){
 		freetlv(ret);
 		return nil;
 	}
