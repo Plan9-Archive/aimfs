@@ -92,3 +92,25 @@ int recvflap(flapconn *fc, flap *f){
 
 	return i;
 }
+
+ushort get2(flap *f){
+	if ((f->length - 2) < f->offset)
+		exits("short get2");
+
+	return (f->data[f->offset++] << 8 | f->data[f->offset++]);
+}
+
+void put2(flap *f, ushort u){
+	int diff = f->length - f->offset;
+
+	if (diff < 0)
+		exits("wtf offset?");
+
+	if (diff < 2) {
+		f->length += 2 - diff;
+		f->data = realloc (f->data, f->length);
+	}
+
+	f->data[f->offset++] = u >> 8;
+	f->data[f->offset++] = u & 0xFF;
+}

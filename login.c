@@ -8,7 +8,7 @@
 #include "fns.h"
 
 void aimlogin(char *sn, char *passwd){
-	int r;
+	int r, N;
 	snac *s, rs;
 	tlv *t;
 	flap *f, rf;
@@ -228,16 +228,126 @@ void aimlogin(char *sn, char *passwd){
 
 	f = newflap(2);
 
-	s = newsnac(0x0001, 0x0002, 0, nextreq);
+	s = newsnac(0x0001, 0x0017, 0, nextreq);
 	sendsnac(f, s);
-//	nextreq = s->reqid + 1;
+	nextreq = s->reqid + 1;
 	freesnac(s);
 
-//	sendflap(fc, f);
-//	freeflap(f);
+	sendflap(fc, f);
+	freeflap(f);
 
 	recvflap(fc, &rf);
-	write (1, rf.data, rf.length);
+	recvsnac(&rf, &rs);
+	if (rs.family != 0x0001 || rs.subtype != 0x0018)
+		exits("snac mismatch: 0x0001 0x0018");
 
+	free(rf.data);
+
+	f = newflap(2);
+	s = newsnac(0x0001, 0x0006, 0, nextreq);
+	sendsnac(f, s);
+	nextreq = s->reqid + 1;
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+	if (rs.family != 0x0001 || rs.subtype != 0x0007)
+		exits("snac mismatch: 0x0001 0x0007");
+
+//	write(1, rf.data, rf.length);
+	N = get2(&rf);
+
+	rf.offset += 30 * N;
+
+	f = newflap(2);
+	s = newsnac(0x0001, 0x0008, 0, nextreq);
+	sendsnac(f, s);
+	nextreq = s->reqid + 1;
+	freesnac(s);
+
+	while (rf.offset < rf.length) {
+		r = get2(&rf);
+		put2(f, r);
+
+		N = get2(&rf);
+		rf.offset += 4 * N;
+	}
+
+//	write(1, f->data, f->length);
+
+	free (rf.data);
+	sendflap(fc, f);
+	freeflap(f);
+
+	f = newflap(2);
+	s = newsnac(0x0002, 0x0002, 0, nextreq);
+	sendsnac(f, s);
+	nextreq = s->reqid + 1;
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+	if (rs.family != 0x0002 || rs.subtype != 0x0003)
+		exits("snac mismatch: 0x0002 0x0003");
+
+//	write (1, rf.data, rf.length);
+	free (rf.data);
+
+	f = newflap(2);
+	s = newsnac(0x0002, 0x0004, 0x0000, nextreq);
+	nextreq = s->reqid + 1;
+	sendsnac(f, s);
+	freesnac(s);
+
+	t = newtlv(0x0005, 0x10, (uchar*)"\x74\x8F\x24\x20\x62\x87\x11\xD1\x82\x22\x44\x45\x53\x54\x00\x00");
+	sendtlv(f, t);
+	freetlv(t);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	f = newflap(2);
+	s = newsnac(0x0003, 0x0002, 0x0000, nextreq);
+	nextreq = s->reqid + 1;
+	sendsnac(f, s);
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+	if (rs.family != 0x0003 || rs.subtype != 0x0003)
+		exits("snac mismatch: 0x0003 0x0003");
+
+//	write (1, rf.data, rf.length);
+	free (rf.data);
+
+	f = newflap(2);
+	s = newsnac(0x0004, 0x0004, 0x0000, nextreq);
+//	nextreq = s->reqid + 1;
+	sendsnac(f, s);
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+	if (rs.family != 0x0004 || rs.subtype != 0x0005)
+		exits("snac mismatch: 0x0004 0x0005");
+
+	write (1, rf.data, rf.length);
+	free (rf.data);
 }
 
