@@ -19,6 +19,7 @@ flapconn *aimlogin(char *sn, char *passwd){
 	char digest[MD5dlen];
 	char *bosaddr = nil;
 	char *cookie = nil;
+	char *p;
 	int cookie_length = 0;
 	int nextreq;
 
@@ -160,11 +161,15 @@ flapconn *aimlogin(char *sn, char *passwd){
 	while (t = recvtlv(&rf)){
 		switch (t->type) {
 		case 0x0005:
-			bosaddr = calloc(1, t->length+5);
+			bosaddr = calloc(1, t->length+10);
 			memcpy(bosaddr, "tcp!", 4);
 			if (t->length)
 				memcpy(&bosaddr[4], t->value, t->length);
-			bosaddr[strcspn(bosaddr, ":")] = '!';
+			if (p = strchr(bosaddr, ':')){
+				*p = '!';
+			}else{
+				memcpy(&bosaddr[strlen(bosaddr)], "!tcp\0", 5);
+			}
 			break;
 		case 0x0006:
 			cookie = calloc(t->length+1, 1);
