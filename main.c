@@ -38,7 +38,7 @@ parse (flap *f){
 		len = f->data[f->offset++];
 		write (1, "welcome, ", 9);
 		write (1, &f->data[f->offset], len);
-		write (1, "\n\n", 2);
+		write (1, "\n", 2);
 		break;
 
 	case 0x00010005:
@@ -46,8 +46,11 @@ parse (flap *f){
 		while ((t = recvtlv(f)) != nil) {
 			print("t: %04x, l: %d\n", t->type, t->length);
 
-			if(t->type == 0x000d)
+			if(t->type == 0x0005){
+				print("bos: ");
 				write (1, t->value, t->length);
+				print("\n");
+			}
 
 			freetlv(t);
 		}
@@ -70,11 +73,13 @@ void main(int argc, char **argv){
 	fc = aimlogin(argv[1], argv[2]);
 
 	f = newflap(2);
-	s = newsnac(0x0001, 0x0005, 0x0000, 0);
+	s = newsnac(0x0001, 0x0004, 0x0000, 0);
 	sendsnac(f, s);
 	freesnac(s);
-	put2(f, 0x000e);
+	put2(f, 0x000d);
 	sendflap(fc, f);
+
+	//write(1, f->data, f->length);
 	freeflap(f);
 
 	while(recvflap(fc, &rf) == 0){
