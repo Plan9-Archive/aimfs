@@ -46,16 +46,22 @@ void freetlv(tlv *t) {
 tlv *recvtlv(flap *f){
 	tlv *ret = calloc(1, sizeof(tlv));
 
-	ret->type = (uchar)f->data[f->offset++] << 8 | (uchar)f->data[f->offset++];
-	ret->length = (uchar)f->data[f->offset++] << 8 | (uchar)f->data[f->offset++];
-	ret->value = calloc(ret->length, 1);
-	memcpy(ret->value, &f->data[f->offset], ret->length);
-	f->offset += ret->length;
-
-	if (f->offset > f->length){
+	if (f->offset > (f->length - 4)){
 		freetlv(ret);
 		return nil;
 	}
+
+	ret->type = (uchar)f->data[f->offset++] << 8 | (uchar)f->data[f->offset++];
+	ret->length = (uchar)f->data[f->offset++] << 8 | (uchar)f->data[f->offset++];
+
+	if ((f->length - f->offset) < ret->length){
+		freetlv(ret);
+		return nil;
+	}
+
+	ret->value = calloc(ret->length, 1);
+	memcpy(ret->value, &f->data[f->offset], ret->length);
+	f->offset += ret->length;
 
 	return ret;
 }
