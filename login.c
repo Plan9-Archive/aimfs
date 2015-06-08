@@ -7,18 +7,17 @@
 #include "dat.h"
 #include "fns.h"
 
-flapconn *aimlogin(char *sn, char *passwd){
+flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	int r, N;
 	snac *s, rs;
 	tlv *t;
 	flap *f, rf;
-	flapconn *fc = newflapconn(LOGIN_ADDR);
+	flapconn *fc = newflapconn(addr);
 	uint authkey_length;
 	char authkey[MAXMSGLEN];
 	DigestState *ds;
 	char digest[MD5dlen];
 	char *bosaddr = nil;
-	char *cookie = nil;
 	char *p;
 	int cookie_length = 0;
 	int nextreq;
@@ -153,7 +152,7 @@ flapconn *aimlogin(char *sn, char *passwd){
 		exits("short read: 0x0017 0x0003");
 
 //	write(1, rf.data, rf.length);
-//	print("%x %x %x %x\n", rs.family, rs.subtype, rs.flags, rs.reqid);
+	print("0x%04x 0x%04x\n", rs.family, rs.subtype);
 
 	if (rs.family != 0x0017 || rs.subtype != 0x0003)
 		exits("snac mismatch: 0x0017 0x0003");
@@ -168,14 +167,16 @@ flapconn *aimlogin(char *sn, char *passwd){
 			if (p = strchr(bosaddr, ':')){
 				*p = '!';
 			}else{
-				memcpy(&bosaddr[strlen(bosaddr)], "!tcp\0", 5);
+				memcpy(&bosaddr[strlen(bosaddr)], "!5190\0", 6);
 			}
+			print("t: %04x, l: %d\n", t->type, t->length);
+			print("bos: %s\n", bosaddr);
 			break;
 		case 0x0006:
-			cookie = calloc(t->length+1, 1);
+			*cookie = calloc(t->length+1, 1);
 			cookie_length = t->length;
 			if (t->length)
-				memcpy(cookie, t->value, t->length);
+				memcpy(*cookie, t->value, t->length);
 			break;
 		case 0x0008:
 			exits("login error");
@@ -203,7 +204,7 @@ flapconn *aimlogin(char *sn, char *passwd){
 	f->data[3] = 1;
 	f->offset = f->length;
 
-	t = newtlv(0x0006, cookie_length, (uchar*)cookie);
+	t = newtlv(0x0006, cookie_length, (uchar*)*cookie);
 	sendtlv(f, t);
 	freetlv(t);
 
@@ -359,6 +360,12 @@ flapconn *aimlogin(char *sn, char *passwd){
 	rs.reqid++;
 	nextreq = s->reqid + 1;
 	sendsnac(&rf, &rs);
+
+	rf.offset += 2;
+	put2(&rf, 0x0003);
+	rf.offset -= 4;
+	print("0x0004 0x0002\n");
+	print("c: 0x%04x, f: 0x%08x\n", get2(&rf), get2(&rf) << 16 | get2(&rf));
 
 //	write (1, rf.data, rf.length);
 	sendflap(fc, &rf);

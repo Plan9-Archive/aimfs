@@ -4,12 +4,15 @@
 #include "dat.h"
 #include "fns.h"
 
+char *bosaddr = nil;
+
 void
 parse (flap *f){
 	snac rs;
 	recvsnac(f, &rs);
 	tlv *t;
 	uchar len;
+	char *p;
 
 	switch(rs.family << 16 | rs.subtype){
 	default:
@@ -47,9 +50,17 @@ parse (flap *f){
 			print("t: 0x%04x, l: %d\n", t->type, t->length);
 
 			if(t->type == 0x0005){
-				print("bos: ");
-				write (1, t->value, t->length);
-				print("\n");
+				bosaddr = calloc(1, t->length+10);
+				memcpy(bosaddr, "tcp!", 4);
+				if (t->length)
+					memcpy(&bosaddr[4], t->value, t->length);
+				if (p = strchr(bosaddr, ':')){
+					*p = '!';
+				}else{
+					memcpy(&bosaddr[strlen(bosaddr)], "!5190\0", 6);
+				}
+				print("t: %04x, l: %d\n", t->type, t->length);
+				print("bos: %s\n", bosaddr);
 			}
 
 			freetlv(t);
@@ -66,11 +77,12 @@ void main(int argc, char **argv){
 	flap rf;
 	flap *f;
 	snac *s;
+	uchar *cookie;
 
 	if (argc < 3)
 		exits("usage");
 
-	fc = aimlogin(argv[1], argv[2]);
+	fc = aimlogin(argv[1], argv[2], LOGIN_ADDR, &cookie);
 
 	f = newflap(2);
 	s = newsnac(0x0001, 0x0004, 0x0000, 0);
