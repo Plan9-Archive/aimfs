@@ -21,7 +21,7 @@ parse (flap *f){
 	case 0x00010001:
 		print("error: %04x\n", get2(f));
 		while((t = recvtlv(f)) != nil) {
-			print("t: %04x, l: %d\n", t->type, t->length);
+			print("t: 0x%04x, l: %d\n", t->type, t->length);
 			freetlv(t);
 		}
 		break;
@@ -29,7 +29,7 @@ parse (flap *f){
 	case 0x000D0009:
 		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
 		while ((t = recvtlv(f)) != nil) {
-			print("t: %04x, l: %d\n", t->type, t->length);
+			print("t: 0x%04x, l: %d\n", t->type, t->length);
 			freetlv(t);
 		}
 		break;
@@ -44,7 +44,7 @@ parse (flap *f){
 	case 0x00010005:
 		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
 		while ((t = recvtlv(f)) != nil) {
-			print("t: %04x, l: %d\n", t->type, t->length);
+			print("t: 0x%04x, l: %d\n", t->type, t->length);
 
 			if(t->type == 0x0005){
 				print("bos: ");
@@ -78,8 +78,7 @@ void main(int argc, char **argv){
 	freesnac(s);
 	put2(f, 0x000d);
 	sendflap(fc, f);
-
-	//write(1, f->data, f->length);
+//	write(1, f->data, f->length);
 	freeflap(f);
 
 	while(recvflap(fc, &rf) == 0){
