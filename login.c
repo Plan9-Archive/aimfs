@@ -7,7 +7,7 @@
 #include "dat.h"
 #include "fns.h"
 
-void aimlogin(char *sn, char *passwd){
+flapconn *aimlogin(char *sn, char *passwd){
 	int r, N;
 	snac *s, rs;
 	tlv *t;
@@ -356,13 +356,21 @@ void aimlogin(char *sn, char *passwd){
 	sendsnac(&rf, &rs);
 
 //	write (1, rf.data, rf.length);
-
 	sendflap(fc, &rf);
 	free (rf.data);
 
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+	if (rs.family != 0x0001 || rs.subtype != 0x000F)
+			exits("snac mismatch: 0x0001 0x000F");
+
+//	write (1, rf.data, rf.length);
+	free(rf.data);
+
 	f = newflap(2);
 	s = newsnac(0x0009, 0x0002, 0x0000, nextreq);
-//	nextreq = s->reqid + 1;
+	nextreq++;
 	sendsnac(f, s);
 	freesnac(s);
 
@@ -372,8 +380,73 @@ void aimlogin(char *sn, char *passwd){
 	recvflap(fc, &rf);
 	recvsnac(&rf, &rs);
 
-	write (1, rf.data, rf.length);
+//	write (1, rf.data, rf.length);
 	if (rs.family != 0x0009 || rs.subtype != 0x0003)
 		exits("snac mismatch: 0x0009 0x0003");
+
+	free(rf.data);
+
+	f = newflap(2);
+	s = newsnac(0x0013, 0x0002, 0x0000, nextreq++);
+	sendsnac(f, s);
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+//	write (1, rf.data, rf.length);
+	if (rs.family != 0x0013 || rs.subtype != 0x0003)
+		exits("snac mismatch: 0x0013 0x0003");
+
+	free(rf.data);
+
+	f = newflap(2);
+	s = newsnac(0x0013, 0x0005, 0x0000, nextreq++);
+	sendsnac(f, s);
+	freesnac(s);
+
+	put2(f, 0); put2(f, 0); put2(f, 0);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	recvflap(fc, &rf);
+	recvsnac(&rf, &rs);
+
+//	write(1, rf.data, rf.length);
+	free(rf.data);
+
+	f = newflap(2);
+	s = newsnac(0x0013, 0x0007, 0x0000, nextreq++);
+	sendsnac (f, s);
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	f = newflap(2);
+	s = newsnac(0x0001, 0x001E, 0x0000, nextreq++);
+	sendsnac(f, s);
+	freesnac(s);
+
+	t = newtlv(0x0006, 0x0004, (uchar*)"\x01\x08\x00\x00");
+	sendtlv(f, t);
+	freetlv(t);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	f = newflap(2);
+	s = newsnac(0x0001, 0x0002, 0x0000, nextreq);
+	sendsnac(f, s);
+	freesnac(s);
+
+	sendflap(fc, f);
+	freeflap(f);
+
+	return fc;
 }
 

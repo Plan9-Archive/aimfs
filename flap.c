@@ -97,7 +97,7 @@ int recvflap(flapconn *fc, flap *f){
 			exits("recvflap: short read");
 	}
 
-	return i;
+	return 0;
 }
 
 ushort get2(flap *f){

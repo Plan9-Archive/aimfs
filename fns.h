@@ -16,4 +16,4 @@ tlv *newtlv(ushort, ushort, uchar*);
 void freetlv(tlv*);
 tlv *recvtlv(flap*);
 
-void aimlogin(char*, char*);
+flapconn *aimlogin(char*, char*);

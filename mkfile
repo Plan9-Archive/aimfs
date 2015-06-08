@@ -8,6 +8,7 @@ OFILES=\
 	snac.$O\
 	tlv.$O\
 	login.$O\
+	fs.$O\
 
 HFILES=dat.h\
 	fns.h\
