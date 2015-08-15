@@ -1,5 +1,9 @@
+#ifdef __linux
+#include <stdlib.h>
+#else
 #include <u.h>
 #include <libc.h>
+#endif
 
 #include "dat.h"
 #include "fns.h"
