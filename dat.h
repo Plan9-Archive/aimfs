@@ -1,3 +1,8 @@
+#ifdef __linux
+	#define uchar unsigned char
+	#define nil NULL
+#endif
+
 #define LOGIN_ADDR "tcp!login.oscar.aol.com!5190"
 #define MAXMSGLEN 2544
 #define MD5_STRING "AOL Instant Messenger (SM)"

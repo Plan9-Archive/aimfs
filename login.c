@@ -1,8 +1,13 @@
+#ifdef __linux
+#include <stdlib.h>
+#include <string.h>
+#else
 #include <u.h>
 #include <libc.h>
 #include <mp.h>
 #include <libsec.h>
 #include <ctype.h>
+#endif
 
 #include "dat.h"
 #include "fns.h"
