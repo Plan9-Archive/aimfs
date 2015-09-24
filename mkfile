@@ -9,6 +9,7 @@ OFILES=\
 	tlv.$O\
 	login.$O\
 	fs.$O\
+	ssi.$O\
 
 HFILES=dat.h\
 	fns.h\
