@@ -1,6 +1,9 @@
 #ifdef __linux
 #include <stdlib.h>
 #include <string.h>
+#include <openssl/md5.h>
+#include <unistd.h>
+#include "linux.h"
 #else
 #include <u.h>
 #include <libc.h>
@@ -20,8 +23,13 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	flapconn *fc = newflapconn(addr);
 	uint authkey_length;
 	char authkey[MAXMSGLEN];
+#ifdef __linux
+	MD5_CTX c;
+	uchar digest[MD5_DIGEST_LENGTH];
+#else
 	DigestState *ds;
-	char digest[MD5dlen];
+	uchar digest[MD5dlen];
+#endif
 	char *bosaddr = nil;
 	char *p;
 	int cookie_length = 0;
@@ -85,9 +93,17 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	memcpy(authkey, &rf.data[rf.offset], authkey_length);
 	free(rf.data);
 
+#ifdef __linux
+	MD5_Init(&c);
+	MD5_Update(&c, authkey, authkey_length);
+	MD5_Update(&c, passwd, strlen(passwd));
+	MD5_Update(&c, MD5_STRING, strlen(MD5_STRING));
+	MD5_Final(digest, &c);
+#else
 	ds = md5((uchar*)authkey, authkey_length, nil, nil);
 	md5((uchar*)passwd, strlen(passwd), nil, ds);
-	md5((uchar*)MD5_STRING, strlen(MD5_STRING), (uchar*)digest, ds);
+	md5((uchar*)MD5_STRING, strlen(MD5_STRING), digest, ds);
+#endif
 
 	f = newflap(2);
 
@@ -104,7 +120,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	sendtlv(f, t);
 	freetlv(t);
 
-	t = newtlv(0x0025, 16, (uchar*)digest);
+	t = newtlv(0x0025, 16, digest);
 	sendtlv(f, t);
 	freetlv(t);
 
