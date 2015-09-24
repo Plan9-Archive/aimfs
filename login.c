@@ -373,8 +373,10 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	recvflap(fc, &rf);
 	recvsnac(&rf, &rs);
 
-	if (rs.family != 0x0004 || rs.subtype != 0x0005)
+	if (rs.family != 0x0004 || rs.subtype != 0x0005) {
+		print ("0x%04x 0x%04x?\n", rs.family, rs.subtype);
 		exits("snac mismatch: 0x0004 0x0005");
+	}
 
 	rf.offset = 0;
 	rs.subtype = 0x0002;
