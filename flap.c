@@ -1,5 +1,10 @@
 #ifdef __linux
 #include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include "linux.h"
 #else
 #include <u.h>
 #include <libc.h>
@@ -10,7 +15,43 @@
 
 flapconn* newflapconn(char *addr){
 	flapconn *ret = calloc(1, sizeof(flapconn));
+#ifdef __linux
+	struct sockaddr_in inet_addr;
+	struct hostent *host_addr;
+	char *ptr2;
+	int port;
+	char *ptr = strchr(addr, '!');
+	if (ptr == NULL)
+		exits("addr0");
+	ptr++;
+	if (*ptr == '\0')
+		exits("addr1");
+
+	ptr2 = strchr(ptr, '!');
+	if (ptr2 == NULL)
+		exits("addr2");
+	*ptr2 = '\0';
+	ptr2++;
+	if (*ptr2 == '\0')
+		exits("addr3");
+	port = atoi(ptr2);
+
+	if ((host_addr = gethostbyname(ptr)) == NULL)
+		exits("gethostbyname");
+
+	if ((ret->fd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+		exits("socket");
+
+	inet_addr.sin_family = AF_INET;
+	inet_addr.sin_port = htons(port);
+	inet_addr.sin_addr = *((struct in_addr*) host_addr->h_addr);
+	memset(&(inet_addr.sin_zero), '\0', 8); 
+	if ((connect(ret->fd, (struct sockaddr *)&inet_addr,
+			    sizeof(struct sockaddr))) == -1)
+		exits("connect");
+#else
 	ret->fd = dial(addr, nil, nil, nil);
+#endif
 	if (ret->fd < 0) {
 		exits("dial");
 	}
