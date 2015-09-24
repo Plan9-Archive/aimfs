@@ -17,6 +17,8 @@ parse (flap *f){
 	recvsnac(f, &rs);
 	tlv *t;
 	uchar len;
+	ushort s;
+	int i;
 	char *p;
 
 	switch(rs.family << 16 | rs.subtype){
@@ -72,6 +74,19 @@ parse (flap *f){
 		}
 		break;
 
+	case 0x00130006:
+		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
+
+		print ("0x%02x\n", f->data[f->offset]);
+		f->offset++;
+
+		s = get2(f);
+		for (i = 0; i < s; i++) {
+			recvssi(f);
+		}
+
+		break;
+
 	case 0x00010021:
 		break;
 	}
@@ -87,6 +102,7 @@ void main(int argc, char **argv){
 	if (argc < 3)
 		exits("usage");
 
+	aimfs(argc - 2, &argv[2]);
 	fc = aimlogin(argv[1], argv[2], LOGIN_ADDR, &cookie);
 
 	f = newflap(2);
