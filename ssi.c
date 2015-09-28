@@ -19,6 +19,9 @@ void recvssi(flap *f) {
 	int i;
 
 	print ("ssi 0x%02x: ", s);
+#ifdef __linux
+	fflush(stdout);
+#endif
 	if (s > (f->length - f->offset)) {
 		for (i = f->offset; i != f->length; i++) {
 			print ("%02x ", f->data[i]);

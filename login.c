@@ -15,6 +15,45 @@
 #include "dat.h"
 #include "fns.h"
 
+int nextreq;
+
+void
+loginparse (flapconn *fc, flap *f){
+	snac rs;
+
+	recvsnac(f, &rs);
+
+	switch(rs.family << 16 | rs.subtype){
+	default:
+		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
+		write (1, f->data, f->length);
+		write (1, "\n\n", 2);
+		break;
+
+	case 0x00040005:
+		f->offset = 0;
+		rs.subtype = 0x0002;
+		rs.reqid = nextreq++;
+		sendsnac(f, &rs);
+
+		f->offset += 2;
+		put2(f, 0x0003);
+		f->offset -= 4;
+		print("0x0004 0x0002\n");
+		print("c: 0x%04x, f: 0x%08x\n", get2(f), get2(f) << 16 | get2(f));
+
+		sendflap(fc, f);
+		break;
+
+	case 0x00010003:
+	case 0x00010015:
+	case 0x00010018:
+	case 0x0001000F:
+	case 0x00090003:
+		break;
+	}
+}
+
 flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	int r, N;
 	snac *s, rs;
@@ -33,7 +72,6 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	char *bosaddr = nil;
 	char *p;
 	int cookie_length = 0;
-	int nextreq;
 
 	/*
 	 * log in to LOGIN_ADDR
@@ -240,20 +278,14 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	free (rf.data);
 	
 	recvflap(fc, &rf);
-	recvsnac(&rf, &rs);
-
-	if (rs.family != 0x0001 || rs.subtype != 0x0003)
-		exits("snac mismatch: 0x0001 0x0003");
-
-//	write(1, rf.data, rf.length);
+	loginparse(fc, &rf);
 	free(rf.data);
 
 	recvflap(fc, &rf);
-	recvsnac(&rf, &rs);
+	loginparse(fc, &rf);
+	free(rf.data);
 
 //	write (1, rf.data, 10);
-	if (rs.family != 0x0001 || rs.subtype != 0x0015)
-		exits("snac mismatch: 0x0001 0x0015");
 
 	f = newflap(2);
 
@@ -266,10 +298,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	freeflap(f);
 
 	recvflap(fc, &rf);
-	recvsnac(&rf, &rs);
-	if (rs.family != 0x0001 || rs.subtype != 0x0018)
-		exits("snac mismatch: 0x0001 0x0018");
-
+	loginparse(fc, &rf);
 	free(rf.data);
 
 	f = newflap(2);
@@ -363,7 +392,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 
 	f = newflap(2);
 	s = newsnac(0x0004, 0x0004, 0x0000, nextreq);
-//	nextreq = s->reqid + 1;
+	nextreq++;
 	sendsnac(f, s);
 	freesnac(s);
 
@@ -371,36 +400,11 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	freeflap(f);
 
 	recvflap(fc, &rf);
-	recvsnac(&rf, &rs);
-
-	if (rs.family != 0x0004 || rs.subtype != 0x0005) {
-		print ("0x%04x 0x%04x?\n", rs.family, rs.subtype);
-		exits("snac mismatch: 0x0004 0x0005");
-	}
-
-	rf.offset = 0;
-	rs.subtype = 0x0002;
-	rs.reqid++;
-	nextreq = s->reqid + 1;
-	sendsnac(&rf, &rs);
-
-	rf.offset += 2;
-	put2(&rf, 0x0003);
-	rf.offset -= 4;
-	print("0x0004 0x0002\n");
-	print("c: 0x%04x, f: 0x%08x\n", get2(&rf), get2(&rf) << 16 | get2(&rf));
-
-//	write (1, rf.data, rf.length);
-	sendflap(fc, &rf);
-	free (rf.data);
+	loginparse(fc, &rf);
+	free(rf.data);
 
 	recvflap(fc, &rf);
-	recvsnac(&rf, &rs);
-
-	if (rs.family != 0x0001 || rs.subtype != 0x000F)
-			exits("snac mismatch: 0x0001 0x000F");
-
-//	write (1, rf.data, rf.length);
+	loginparse(fc, &rf);
 	free(rf.data);
 
 	f = newflap(2);
@@ -413,12 +417,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	freeflap(f);
 
 	recvflap(fc, &rf);
-	recvsnac(&rf, &rs);
-
-//	write (1, rf.data, rf.length);
-	if (rs.family != 0x0009 || rs.subtype != 0x0003)
-		exits("snac mismatch: 0x0009 0x0003");
-
+	loginparse(fc, &rf);
 	free(rf.data);
 
 	f = newflap(2);
@@ -478,6 +477,56 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	s = newsnac(0x0001, 0x0002, 0x0000, nextreq);
 	sendsnac(f, s);
 	freesnac(s);
+
+	put2(f, 0x0001);
+	put2(f, 0x0003);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x0013);
+	put2(f, 0x0002);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x0002);
+	put2(f, 0x0001);
+	put2(f, 0x0101);
+	put2(f, 0x047B);
+
+	put2(f, 0x0003);
+	put2(f, 0x0001);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x0015);
+	put2(f, 0x0001);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x0004);
+	put2(f, 0x0001);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x0006);
+	put2(f, 0x0001);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x0009);
+	put2(f, 0x0001);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x000A);
+	put2(f, 0x0001);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
+
+	put2(f, 0x000B);
+	put2(f, 0x0001);
+	put2(f, 0x0110);
+	put2(f, 0x047B);
 
 	sendflap(fc, f);
 	freeflap(f);
