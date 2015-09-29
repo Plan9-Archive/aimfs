@@ -19,8 +19,10 @@ parse (flap *f){
 	tlv *t;
 	uchar len;
 	ushort s;
+	ushort channel;
 	int i;
 	char *p;
+	ulong cookie;
 
 	switch(rs.family << 16 | rs.subtype){
 	default:
@@ -120,15 +122,51 @@ parse (flap *f){
 
 			for (i = 0; i < s; i++) {
 				t = recvtlv(f);
+				if (t == nil)
+					break;
 				print("t: 0x%04x, l: %d\n", t->type, t->length);
 				freetlv(t);
 			}
 		} while (f->offset < f->length);
 		break;
 
-//	case 0x00040007:
-//		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
-//		break;
+	case 0x00040007:
+		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
+		cookie = get8(f);
+		channel = get2(f);
+		len = f->data[f->offset++];
+		print ("from: ");
+#ifdef __linux
+		fflush(stdout);
+#endif
+		write (1, &f->data[f->offset], len);
+		f->offset += len;
+#ifdef __linux
+		fflush(stdout);
+#endif
+		print(", warn: 0x%04x, channel: 0x%04x, cookie: 0x%016lx\n", get2(f), channel, cookie);
+		s = get2(f);
+		for (i = 0; i < s; i++) {
+			t = recvtlv(f);
+			if (t == nil)
+				break;
+			print("t: 0x%04x, l: %d\n", t->type, t->length);
+			freetlv(t);
+		}
+		while ((t = recvtlv(f)) != nil) {
+			print("t: 0x%04x, l: %d, v: ", t->type, t->length);
+#ifdef __linux
+			fflush(stdout);
+#endif
+			write (1, t->value, t->length);
+#ifdef __linux
+			fflush(stdout);
+#endif
+			print ("\n");
+			freetlv(t);
+		}
+
+		break;
 	}
 }
 
