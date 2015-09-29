@@ -1,6 +1,6 @@
 </$objtype/mkfile
 
-TARG=aimfs
+TARG=oscarlnet
 
 OFILES=\
 	flap.$O\
