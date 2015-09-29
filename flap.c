@@ -152,6 +152,18 @@ ushort get2(flap *f){
 	return (f->data[f->offset++] << 8 | f->data[f->offset++]);
 }
 
+uint get4(flap *f) {
+	uint ret = (uint)get2(f) << 16;
+	ret |= get2(f);
+	return ret;
+}
+
+unsigned long long get8(flap *f) {
+	unsigned long long ret = (unsigned long long)get4(f) << 32;
+	ret |= get4(f);
+	return ret;
+}
+
 void put2(flap *f, ushort u){
 	int diff = f->length - f->offset;
 
