@@ -21,8 +21,8 @@ UPDATE=\
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
 
-$TARG:	$OFILES
+$TARG:	$OFILES $HFILES
 	$LD -o $TARG $OFILES
 
 clean:
-	rm $TARG $OFILES
+	rm -f $TARG $OFILES
