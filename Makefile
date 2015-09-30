@@ -12,8 +12,8 @@ HFILES=dat.h\
 	fns.h\
 	linux.h\
 
-$(BIN):	$(OFILES)
+$(BIN):	$(OFILES) $(HFILES)
 	$(CC) -o $(BIN) $(OFILES) -lcrypto 
 
 clean:
-	rm $(BIN) $(OFILES)
+	rm -f $(BIN) $(OFILES)
