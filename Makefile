@@ -7,6 +7,7 @@ OFILES=\
 	tlv.o\
 	login.o\
 	ssi.o\
+	parse.o\
 
 HFILES=dat.h\
 	fns.h\

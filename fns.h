@@ -25,3 +25,5 @@ flapconn *aimlogin(char*, char*, char*, uchar**);
 void aimfs(int argc, char **argv);
 
 void recvssi(flap*);
+
+void parse(flap*);
