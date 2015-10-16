@@ -72,3 +72,14 @@ tlv *recvtlv(flap *f){
 	return ret;
 }
 
+void printtlv(tlv *t) {
+	print("t: 0x%04x, l: %d, v: ", t->type, t->length);
+#ifdef __linux
+	fflush(stdout);
+#endif
+	write (1, t->value, t->length);
+#ifdef __linux
+	fflush(stdout);
+#endif
+	print ("\n");
+}
