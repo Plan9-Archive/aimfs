@@ -34,7 +34,7 @@ parse (flap *f){
 	case 0x00010001:
 		print("error: %04x\n", get2(f));
 		while((t = recvtlv(f)) != nil) {
-			print("t: 0x%04x, l: %d\n", t->type, t->length);
+			printtlv(t);
 			freetlv(t);
 		}
 		break;
@@ -42,7 +42,7 @@ parse (flap *f){
 	case 0x000D0009:
 		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
 		while ((t = recvtlv(f)) != nil) {
-			print("t: 0x%04x, l: %d\n", t->type, t->length);
+			printtlv(t);
 			freetlv(t);
 		}
 		break;
@@ -124,7 +124,7 @@ parse (flap *f){
 				t = recvtlv(f);
 				if (t == nil)
 					break;
-				print("t: 0x%04x, l: %d\n", t->type, t->length);
+				printtlv(t);
 				freetlv(t);
 			}
 		} while (f->offset < f->length);
@@ -150,19 +150,11 @@ parse (flap *f){
 			t = recvtlv(f);
 			if (t == nil)
 				break;
-			print("t: 0x%04x, l: %d\n", t->type, t->length);
+			printtlv(t);
 			freetlv(t);
 		}
 		while ((t = recvtlv(f)) != nil) {
-			print("t: 0x%04x, l: %d, v: ", t->type, t->length);
-#ifdef __linux
-			fflush(stdout);
-#endif
-			write (1, t->value, t->length);
-#ifdef __linux
-			fflush(stdout);
-#endif
-			print ("\n");
+			printtlv(t);
 			freetlv(t);
 		}
 

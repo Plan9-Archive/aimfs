@@ -4,7 +4,7 @@ TARG=oscarlnet
 
 OFILES=\
 	flap.$O\
-	main.$O\
+	threadmain.$O\
 	snac.$O\
 	tlv.$O\
 	login.$O\

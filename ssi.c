@@ -18,17 +18,10 @@ void recvssi(flap *f) {
 	tlv *t;
 	int i;
 
-	print ("ssi 0x%02x: ", s);
+	print ("ssi: ");
 #ifdef __linux
 	fflush(stdout);
 #endif
-	if (s > (f->length - f->offset)) {
-		for (i = f->offset; i != f->length; i++) {
-			print ("%02x ", f->data[i]);
-		}
-
-		exits("ssi item name length too long");
-	}
 
 	write(1, &f->data[f->offset], s);
 	print ("\n");
@@ -44,10 +37,7 @@ void recvssi(flap *f) {
 	print ("gid: %04x, item: %04x, type: %04x, len: %d\n", gid, iid, type, len);
 
 	while (f->offset < i && (t = recvtlv(f)) != nil) {
-		print ("t: 0x%04x, l: %d", t->type, t->length);
-	
-		print ("\n");
-
+		printtlv(t);
 		freetlv(t);
 	}
 }
