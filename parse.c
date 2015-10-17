@@ -50,7 +50,13 @@ parse (flap *f){
 	case 0x0001000f:
 		len = f->data[f->offset++];
 		write (1, "welcome, ", 9);
+#ifdef __linux
+		fflush(stdout);
+#endif
 		write (1, &f->data[f->offset], len);
+#ifdef __linux
+		fflush(stdout);
+#endif
 		write (1, "\n", 2);
 #ifdef __linux
 		fflush(stdout);

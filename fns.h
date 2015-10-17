@@ -3,12 +3,14 @@ int sendflap(flapconn *fc, flap *f);
 flap* newflap(uchar channel);
 void freeflap(flap *f);
 int recvflap(flapconn *fc, flap *f);
+uchar get1(flap *f);
 ushort get2(flap *f);
 uint get4(flap *f);
 unsigned long long get8(flap *f);
+void put1(flap *f, uchar c);
 void put2(flap *f, ushort u);
 void put4(flap *f, uint i);
-void put8(flap *f, ulong l);
+void put8(flap *f, unsigned long long);
 
 int sendsnac(flap *f, snac *s);
 snac *newsnac(ushort family, ushort subtype, ushort flags, uint reqid);

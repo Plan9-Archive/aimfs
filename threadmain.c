@@ -13,15 +13,27 @@
 
 char *bosaddr = nil;
 
-void threadmain(int argc, char **argv){
-	flapconn *fc;
+void threadrecvflap(void *arg) {
 	flap rf;
-	flap *f;
+	flapconn *fc = arg;
+
+	while(recvflap(fc, &rf) == 0){
+		parse(&rf);
+
+		free(rf.data);
+	}
+}
+
+void threadmain(int argc, char **argv){
+	flapconn *fc, fstdin;
+	flap *f, rf;
 	snac *s;
 	uchar *cookie;
 
 	if (argc < 3)
 		exits("usage");
+
+	fstdin.fd = 0;
 
 	bosaddr = strdup(LOGIN_ADDR);
 	fc = aimlogin(argv[1], argv[2], bosaddr, &cookie);
@@ -37,10 +49,11 @@ void threadmain(int argc, char **argv){
 //	write(1, f->data, f->length);
 	freeflap(f);
 
-	while(recvflap(fc, &rf) == 0){
-		parse(&rf);
+	threadcreate(threadrecvflap, fc, 8192);
 
-		free(rf.data);
+	while (recvflap(&fstdin, &rf) == 0) {
+		sendflap(fc, &rf);
 	}
 
+	threadexitsall(nil);
 }
