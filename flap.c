@@ -113,9 +113,9 @@ int recvflap(flapconn *fc, flap *f){
 
 	r = read(fc->fd, buf, 1);
 	if (r != 1)
-		exits("recvflap: read");
+		return -1;
 	if (buf[0] != 0x2A)
-		exits("recvflap: magic mismatch");
+		return -1;
 
 	r = read(fc->fd, &buf[1], 1);
 	if (r != 1)
@@ -139,7 +139,7 @@ int recvflap(flapconn *fc, flap *f){
 	for (i = 0; i < f->length; i += r) {
 		r = read(fc->fd, &f->data[i], f->length - i);
 		if (r < 1)
-			exits("recvflap: short read");
+			return -1;
 	}
 
 	return 0;
@@ -164,17 +164,25 @@ unsigned long long get8(flap *f) {
 	return ret;
 }
 
-void put2(flap *f, ushort u){
-	int diff = f->length - f->offset;
-
-	if (diff < 0)
-		exits("wtf offset?");
-
-	if (diff < 2) {
-		f->length += 2 - diff;
-		f->data = realloc (f->data, f->length);
+void put1(flap *f, uchar c) {
+	while (f->offset >= f->length) {
+		f->length++;
+		f->data = realloc(f->data, f->length);
 	}
+	f->data[f->offset++] = c;
+}
 
-	f->data[f->offset++] = u >> 8;
-	f->data[f->offset++] = u & 0xFF;
+void put2(flap *f, ushort u){
+	put1(f, u >> 8);
+	put1(f, u & 0xFF);
+}
+
+void put4(flap *f, uint i) {
+	put2(f, i >> 16);
+	put2(f, i & 0xFFFF);
+}
+
+void put8(flap *f, unsigned long long i) {
+	put4(f, i >> 32);
+	put4(f, i & 0xFFFFFFFF);
 }

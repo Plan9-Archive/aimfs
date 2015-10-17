@@ -25,5 +25,8 @@ UPDATE=\
 $TARG:	$OFILES $HFILES
 	$LD -o $TARG $OFILES
 
+imprefixer: imprefixer.$O flap.$O tlv.$O snac.$O $HFILES
+	$LD -o imprefixer imprefixer.$O flap.$O tlv.$O snac.$O
+
 clean:
-	rm -f $TARG $OFILES
+	rm -f $TARG *.[$OS] imprefixer

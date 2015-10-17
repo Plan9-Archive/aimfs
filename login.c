@@ -33,14 +33,12 @@ loginparse (flapconn *fc, flap *f){
 	case 0x00040005:
 		f->offset = 0;
 		rs.subtype = 0x0002;
-		rs.reqid = nextreq++;
+		rs.reqid = nextreq;
 		sendsnac(f, &rs);
 
-		f->offset += 2;
-		put2(f, 0x0003);
-		f->offset -= 4;
-		print("0x0004 0x0002\n");
-		print("c: 0x%04x, f: 0x%08x\n", get2(f), get2(f) << 16 | get2(f));
+		print("0x0004 0x0005\n");
+	//	print("c: 0x%04x, f: 0x%08x, 0x%04x, 0x%04x, 0x%04x, 0x%04x, 0x%04x\n",
+	//		get2(f), get4(f), get2(f), get2(f), get2(f), get2(f), get2(f));
 
 		sendflap(fc, f);
 		break;
@@ -50,6 +48,8 @@ loginparse (flapconn *fc, flap *f){
 	case 0x00010018:
 	case 0x0001000F:
 	case 0x00090003:
+	case 0x00130003:
+		print("0x%04x 0x%04x\n", rs.family, rs.subtype);
 		break;
 	}
 }
@@ -429,12 +429,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	freeflap(f);
 
 	recvflap(fc, &rf);
-	recvsnac(&rf, &rs);
-
-//	write (1, rf.data, rf.length);
-	if (rs.family != 0x0013 || rs.subtype != 0x0003)
-		exits("snac mismatch: 0x0013 0x0003");
-
+	loginparse(fc, &rf);
 	free(rf.data);
 
 	f = newflap(2);
