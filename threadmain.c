@@ -49,7 +49,7 @@ void threadmain(int argc, char **argv){
 //	write(1, f->data, f->length);
 	freeflap(f);
 
-	threadcreate(threadrecvflap, fc, 8192);
+	proccreate(threadrecvflap, fc, 8192);
 
 	while (recvflap(&fstdin, &rf) == 0) {
 		sendflap(fc, &rf);

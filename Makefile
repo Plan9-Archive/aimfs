@@ -2,7 +2,7 @@ BIN=oscarlnet
 CFLAGS=-g
 OFILES=\
 	flap.o\
-	main.o\
+	linuxmain.o\
 	snac.o\
 	tlv.o\
 	login.o\
@@ -16,5 +16,8 @@ HFILES=dat.h\
 $(BIN):	$(OFILES) $(HFILES)
 	$(CC) -o $(BIN) $(OFILES) -lcrypto 
 
+imprefixer: flap.o imprefixer.o snac.o tlv.o
+	$(CC) -o imprefixer flap.o imprefixer.o snac.o tlv.o
+
 clean:
-	rm -f $(BIN) $(OFILES)
+	rm -f $(BIN) imprefixer $(OFILES)
