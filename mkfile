@@ -22,6 +22,8 @@ UPDATE=\
 %.$O:	%.c
 	$CC $CFLAGS $stem.c
 
+all:V: 	$TARG imprefixer
+
 $TARG:	$OFILES $HFILES
 	$LD -o $TARG $OFILES
 

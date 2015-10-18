@@ -13,6 +13,8 @@ HFILES=dat.h\
 	fns.h\
 	linux.h\
 
+all: $(BIN) imprefixer
+
 $(BIN):	$(OFILES) $(HFILES)
 	$(CC) -o $(BIN) $(OFILES) -lcrypto 
 
