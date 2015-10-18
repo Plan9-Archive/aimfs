@@ -1,11 +1,8 @@
-#ifdef __linux
 #include <stdlib.h>
 #include <string.h>
 #include "linux.h"
-#else
-#include <u.h>
-#include <libc.h>
-#endif
+
+#include <poll.h>
 
 #include "dat.h"
 #include "fns.h"
@@ -13,11 +10,12 @@
 char *bosaddr = nil;
 
 void main(int argc, char **argv){
-	flapconn *fc;
+	flapconn *fc, fcstdin;
 	flap rf;
 	flap *f;
 	snac *s;
 	uchar *cookie;
+	struct pollfd pfds[2];
 
 	if (argc < 3)
 		exits("usage");
@@ -36,10 +34,25 @@ void main(int argc, char **argv){
 //	write(1, f->data, f->length);
 	freeflap(f);
 
-	while(recvflap(fc, &rf) == 0){
-		parse(&rf);
+	fcstdin.fd = 0;
+	pfds[0].fd = fcstdin.fd;
+	pfds[1].fd = fc->fd;
+	pfds[0].events = pfds[1].events = POLLIN;
 
-		free(rf.data);
+	while(poll(pfds, 2, -1) > 0) {
+		if (pfds[0].revents & POLLIN) {
+			if (recvflap(&fcstdin, &rf) != 0)
+				break;
+			sendflap(fc, &rf);
+			free(rf.data);
+		}
+		if (pfds[1].revents & POLLIN) {
+			if (recvflap(fc, &rf) != 0)
+				break;
+			parse(&rf);
+			free(rf.data);
+		}
 	}
 
+	perror ("poll");
 }

@@ -123,6 +123,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	if (r != 10)
 		exits("recvsnac: md5-authkey");
 
+	print("0x%04x 0x%04x\n", rs.family, rs.subtype);
 //	write(1, rf.data, 10);
 	if (rs.family != 0x0017 || rs.subtype != 0x0007)
 		exits("invalid snacid");
@@ -228,7 +229,6 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 			}else{
 				memcpy(&bosaddr[strlen(bosaddr)], "!5190\0", 6);
 			}
-			print("t: %04x, l: %d\n", t->type, t->length);
 			print("bos: %s\n", bosaddr);
 			break;
 		case 0x0006:
@@ -313,6 +313,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	recvflap(fc, &rf);
 	recvsnac(&rf, &rs);
 
+	print("0x%04x 0x%04x\n", rs.family, rs.subtype);
 	if (rs.family != 0x0001 || rs.subtype != 0x0007)
 		exits("snac mismatch: 0x0001 0x0007");
 
@@ -353,6 +354,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	recvflap(fc, &rf);
 	recvsnac(&rf, &rs);
 
+	print("0x%04x 0x%04x\n", rs.family, rs.subtype);
 	if (rs.family != 0x0002 || rs.subtype != 0x0003)
 		exits("snac mismatch: 0x0002 0x0003");
 
@@ -384,6 +386,7 @@ flapconn *aimlogin(char *sn, char *passwd, char *addr, uchar **cookie){
 	recvflap(fc, &rf);
 	recvsnac(&rf, &rs);
 
+	print("0x%04x 0x%04x\n", rs.family, rs.subtype);
 	if (rs.family != 0x0003 || rs.subtype != 0x0003)
 		exits("snac mismatch: 0x0003 0x0003");
 

@@ -22,7 +22,7 @@ parse (flap *f){
 	ushort channel;
 	int i;
 	char *p;
-	ulong cookie;
+	unsigned long long cookie;
 
 	switch(rs.family << 16 | rs.subtype){
 	default:
@@ -87,7 +87,7 @@ parse (flap *f){
 		break;
 
 	case 0x00130006:
-		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
+/*		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
 
 		print ("0x%02x\n", f->data[f->offset]);
 		f->offset++;
@@ -97,9 +97,15 @@ parse (flap *f){
 			recvssi(f);
 		}
 
-		break;
+		break;*/
 
 	case 0x00010021:
+	case 0x0001000a:
+	case 0x0004000c:
+	case 0x00130009:
+	case 0x00130011:
+	case 0x00130012:
+		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
 		break;
 
 	case 0x000b0002:
@@ -150,17 +156,18 @@ parse (flap *f){
 #ifdef __linux
 		fflush(stdout);
 #endif
-		print(", warn: 0x%04x, channel: 0x%04x, cookie: 0x%016lx\n", get2(f), channel, cookie);
+		print(", warn: 0x%04x, channel: 0x%04x, cookie: 0x%016llx\n", get2(f), channel, cookie);
 		s = get2(f);
 		for (i = 0; i < s; i++) {
 			t = recvtlv(f);
 			if (t == nil)
 				break;
-			printtlv(t);
+//			printtlv(t);
 			freetlv(t);
 		}
 		while ((t = recvtlv(f)) != nil) {
-			printtlv(t);
+			if (t->type == 2)
+				printtlv(t);
 			freetlv(t);
 		}
 

@@ -20,4 +20,4 @@ imprefixer: flap.o imprefixer.o snac.o tlv.o
 	$(CC) -o imprefixer flap.o imprefixer.o snac.o tlv.o
 
 clean:
-	rm -f $(BIN) imprefixer $(OFILES)
+	rm -f $(BIN) imprefixer *.o

@@ -113,23 +113,23 @@ int recvflap(flapconn *fc, flap *f){
 
 	r = read(fc->fd, buf, 1);
 	if (r != 1)
-		return -1;
+		exits("recvflap: first char\n");
 	if (buf[0] != 0x2A)
-		return -1;
+		exits("recvflap: first char != *\n");
 
 	r = read(fc->fd, &buf[1], 1);
 	if (r != 1)
-		return -1;
+		exits("recvflap: channel\n");
 	f->channel = (uchar)buf[1];
 
 	r = read(fc->fd, &buf[2], 2);
 	if (r != 2)
-		return -1;
+		exits("recvflap: sequence number\n");
 // TODO sequence number
 
 	r = read(fc->fd, &buf[4], 2);
 	if (r != 2)
-		return -1;
+		exits("recvflap: error reading length\n");
 	f->length = (uchar)buf[4] << 8 | (uchar)buf[5];
 
 	f->data = calloc(1, f->length);
@@ -139,7 +139,7 @@ int recvflap(flapconn *fc, flap *f){
 	for (i = 0; i < f->length; i += r) {
 		r = read(fc->fd, &f->data[i], f->length - i);
 		if (r < 1)
-			return -1;
+			exits("recvflap: error reading data\n");
 	}
 
 	return 0;
