@@ -48,7 +48,7 @@ parse (flap *f){
 		break;
 
 	case 0x0001000f:
-		len = f->data[f->offset++];
+/*		len = f->data[f->offset++];
 		write (1, "welcome, ", 9);
 #ifdef __linux
 		fflush(stdout);
@@ -60,7 +60,8 @@ parse (flap *f){
 		write (1, "\n", 2);
 #ifdef __linux
 		fflush(stdout);
-#endif
+#endif*/
+		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
 		break;
 
 	case 0x00010005:
@@ -105,6 +106,7 @@ parse (flap *f){
 	case 0x00130009:
 	case 0x00130011:
 	case 0x00130012:
+	case 0x00130018:
 		print ("0x%04x 0x%04x\n", rs.family, rs.subtype);
 		break;
 
@@ -136,7 +138,7 @@ parse (flap *f){
 				t = recvtlv(f);
 				if (t == nil)
 					break;
-				printtlv(t);
+//				printtlv(t);
 				freetlv(t);
 			}
 		} while (f->offset < f->length);
@@ -166,8 +168,22 @@ parse (flap *f){
 			freetlv(t);
 		}
 		while ((t = recvtlv(f)) != nil) {
-			if (t->type == 2)
-				printtlv(t);
+			switch (t->type) {
+			default:
+				break;
+			case 5:
+				f->offset -= t->length;
+				f->offset += 26;
+				freetlv(t);
+				continue;
+			case 2:
+				write(1, &t->value[13], t->length - 13);
+				print("\n");
+				break;
+			case 0x2711:
+				write(1, &t->value[4], t->length - 4);
+				print("\n");
+			}
 			freetlv(t);
 		}
 
